@@ -1,0 +1,9 @@
+		"For each 'page' in 'pages':\n"
+		"    If 'frames' does not contain 'page':\n"
+		"        Increment 'pageFaults'\n"
+            "    If 'frames' is full:\n"
+            "        Remove the least recently used page from 'frames'\n"
+            "    Add 'page' to 'frames'\n"
+		"Else:\n"
+		"    do nothing\n"
+:'<,'>s:\(.*\):\t\t"\1\\n":g

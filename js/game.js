@@ -3,13 +3,17 @@ let config = {
     width: window.innerWidth,
     height: window.innerHeight,
     audio: {
-        disableWebAudio: true
+        disableWebAudio: true,
     },
     dom: {
-        createContainer: true
+        createContainer: true,
+    },
+    fps: {
+        forceSetTimeOut: true,
+        target: 1
     },
     backgroundColor: '#E0C3FC',
     parent: 'gamePlay',
-    scene: intro
-}
-const game = new Phaser.Game(config)
+    scene: intro,
+};
+const game = new Phaser.Game(config);

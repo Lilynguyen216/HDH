@@ -33,8 +33,8 @@ class PageFaultLRU {
 
         this.currentCol = 0;
     }
-    showObjectData(){
-        for(const key in this.objData){
+    showObjectData() {
+        for (const key in this.objData) {
             console.log(key, this.objData[key]);
         }
     }
@@ -42,7 +42,7 @@ class PageFaultLRU {
         for (let i = 0; i < this.pages.length; i++) {
             this.setHoldLessPage(this.pages[i], i);
             this.replacePage(this.pages[i], i);
-            if(this.iCurrentCapacity !== this.iMaxFrames)
+            if (this.iCurrentCapacity !== this.iMaxFrames)
                 this.iCurrentCapacity++;
         }
     }
@@ -57,19 +57,26 @@ class PageFaultLRU {
             if (!this.frames.has(iPageItem)) {
                 this.frames.add(iPageItem);
                 this.pageFault++;
+            } else {
+                this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
+
             if (this.currentCol === 0)
                 this.objData[`col${this.currentCol}`] = [];
             else
-                this.objData[`col${this.currentCol}`] =
-                    [...this.objData[`col${this.currentCol - 1}`]];
+                this.objData[`col${this.currentCol}`] = [
+                    ...this.objData[`col${this.currentCol - 1}`],
+                ];
             this.objData[`col${this.currentCol}`].push({
-                textVal: iPageItem,
                 textTrigger: 0,
+                textVal: iPageItem,
                 replacedPage: false,
             });
-            this.currentCol++;
+            //console.log(this.objData[`col${this.currentCol}`]);
+            this.objData[`col${this.currentCol}`][0].textTrigger = 0;
             this.order.set(iPageItem, iIndexPageItem);
+            //only this has text{0, 2}
+            this.currentCol++;
         }
     }
 
@@ -83,16 +90,20 @@ class PageFaultLRU {
             for (let i = 0; i < this.iMaxFrames; i++)
                 if (arr[i].textVal === value) arr[i] = replace;
         };
-        
 
         const setReplacedPageFalse = (arrItemObj) => {
-            for(let i = 0; i < this.iMaxFrames; i++){
+            for (let i = 0; i < arrItemObj.length; i++) {
                 arrItemObj[i].replacedPage = false;
             }
-        }
+        };
         if (this.iCurrentCapacity === this.iMaxFrames) {
-            this.objData[`col${this.currentCol}`] =
-                [...this.objData[`col${this.currentCol - 1}`]];
+            //NOTE
+            this.objData[`col${this.currentCol}`] = JSON.parse(
+                JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
+            );
+
+
+            setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
                 let iLeastUsedPage = Number.MAX_VALUE,
                     iMinOrder = Number.MAX_VALUE;
@@ -106,18 +117,15 @@ class PageFaultLRU {
                     }
 
                 //BUG
-                //setReplacedPageFalse([...this.objData[`col${this.currentCol}`]])
                 const replaceItem = {
                     textVal: iPageItem,
-                    textTrigger: 1,
                     replacedPage: true,
                 };
 
-                console.log(replaceItem);
                 replaceWithValue(
                     this.objData[`col${this.currentCol}`],
                     iLeastUsedPage,
-                    replaceItem
+                    replaceItem,
                 );
 
                 this.pageFault++;
@@ -125,12 +133,24 @@ class PageFaultLRU {
                 this.order.delete(iLeastUsedPage);
 
                 this.frames.add(iPageItem);
+                this.objData[`col${this.currentCol}`][0].textTrigger = 1;
+            } else {
+                this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
             this.order.set(iPageItem, iIndexPageItem);
 
-
             this.currentCol++;
         }
+    }
+    /****************************************************
+     * @description get quantity of solution we make
+     * @returns {Number} quantity of solution in lru table
+     ****************************************************/
+    getQuantityItemArr() {
+        let iResult = 0;
+        for (const key in this.objData)
+            for (let iIndex = 0; iIndex < this.objData[key].length; iIndex++) iResult++;
+        return iResult;
     }
 }
 
