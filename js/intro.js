@@ -200,39 +200,44 @@ class intro extends Phaser.Scene {
             if (this.bIsPlaying === true) this.bIsPlaying = false;
             //when slider is clicked, bIsPlaying switch to false to prevent code block in update function
 
-            //Round down, when clicking, the value of slider between 0 and lru.getQuantityItemArr()
-            const valueCurrentColumn = Math.floor(
+            //Round down, when clicking, the value of slider between 0 and lru.getQuantityItemArr() - 1
+            const valueCurrentSolution = Math.floor(
                 this.slider.getValue(0, this.lru.getQuantityItemArr() - 1),
             );
-            //set visible true for all object from 0 to valueCurrentColumn
-            for (let i = 0; i < valueCurrentColumn; i++) {
-                console.log('visible', i);
+            //set visible true for all object from 0 to valueCurrentSolution
+            for (let i = 0; i <= valueCurrentSolution; i++) {
+                //console.log('visible', i);
                 this.arrSolution[i]['textObj'].setVisible(true);
             }
             //on the other hand, the others will be invisible
             for (
-                let i = valueCurrentColumn;
+                let i = valueCurrentSolution + 1;
                 i < this.lru.getQuantityItemArr();
                 i++
             ) {
-                console.log('not visible', i);
+                //console.log('not visible', i);
                 this.arrSolution[i]['textObj'].setVisible(false);
             }
-            this.iCurrentSolution = valueCurrentColumn;
+            //console.log(valueCurrentSolution);
+            this.iCurrentSolution = valueCurrentSolution;
+            console.log(this.iCurrentSolution);
             this.triggerText();
         });
     }
     showOneItemSolution() {
         if (this.iCurrentSolution < this.lru.getQuantityItemArr()) {
             this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(true);
+            this.triggerText();
             this.iCurrentSolution++;
         }
     }
     hideOneItemSolution() {
         if (this.iCurrentSolution >= 0) {
+            console.log(this.iCurrentSolution);
             this.arrSolution[this.iCurrentSolution - 1]['textObj'].setVisible(
                 false,
             );
+            this.triggerText();
             this.iCurrentSolution--;
         }
     }
@@ -289,7 +294,9 @@ class intro extends Phaser.Scene {
             2: [objTransform[`txtContainPage`]],
         };
         const posCol = this.arrSolution[this.iCurrentSolution]['posCol'];
-        const posIndex = this.arrSolution[this.iCurrentSolution]['posIndex'];
+        //console.log(posCol);
+        //always 0 for index based on column
+        const posIndex = 0;
         //array of text to trigger
         const iTriggerText = this.lru.objData[posCol][posIndex]['textTrigger'];
 
@@ -457,7 +464,8 @@ class intro extends Phaser.Scene {
                 this.lru.getQuantityItemArr() - 1,
             );
             //console.log(this.arrSolution[this.iCurrentSolution]['posIndex']);
-            const iIndexItemOnCol = this.arrSolution[this.iCurrentSolution]['posIndex'];
+            const iIndexItemOnCol =
+                this.arrSolution[this.iCurrentSolution]['posIndex'];
             if (iIndexItemOnCol === 0) {
                 this.triggerText();
             }
