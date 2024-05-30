@@ -170,7 +170,7 @@ const TXT_FULL = `      If 'frames' is full:\n
 const TXT_ADD_PAGE = `      Add 'page' to 'frames'`;
 const TXT_CONDITION_CPAGE = `   Else:\n 
         Do nothing`;
-
+//**************************************index start at 0**************************************
 class intro extends Phaser.Scene {
     constructor() {
         super('introScene');
@@ -234,7 +234,7 @@ class intro extends Phaser.Scene {
         }
     }
 
-    textTrigger() {
+    showTextTrigger() {
         const arrTXT = [
             TXT_ALWAYS,
             TXT_CONDITION_NOT_CPAGE,
@@ -255,12 +255,44 @@ class intro extends Phaser.Scene {
             else iPosY += iDiff;
         }
     }
+
+    /****************************************************
+     * @returns {object} return object trigger text
+     ****************************************************/
+    triggerText() {
+        //reset color of all text trigger except 0
+        for(let iIndex = 1; iIndex < iIndex; iIndex++)
+            this.arrTXT[iIndex].setColor(COLOR_TXT_DARK);
+        //transform to index of array in this.arrTXT
+        const objTransform = {
+            txtNotContainPage: 1,
+            txtIncrePageFault: 2,
+            txtFull: 3,
+            txtAddFrames: 4,
+            txtContainPage: 5,
+        };
+        const obj = {
+            0: [
+                objTransform[`txtNotContainPage`],
+                objTransform[`txtIncrePageFault`],
+                objTransform[`txtAddFrames`],
+            ],
+            1: [
+                objTransform[`txtNotContainPage`],
+                objTransform[`txtIncrePageFault`],
+                objTransform[`txtIncrePageFault`],
+                objTransform[`txtFull`],
+            ],
+            2: [objTransform[`txtContainPage`]],
+        };
+    }
     init() {
         // this.iCurrentColumn = 0;
         // this.iCurrentIndexItem = 0;
         // store all solution of pageReplacement
         this.arrSolution = [];
-        //for index of current item solution show on screen
+        //for order of current item solution show on screen 
+        //Note this order is based on item is not undefined
         this.iCurrentSolution = 0;
 
         this.lru;
@@ -268,10 +300,13 @@ class intro extends Phaser.Scene {
         this.bIsPlaying = false;
         //for txt object pseduo code
         this.arrTXT = [];
+        this.pages = [];
     }
     create() {
+        this.quantityFrames = 3;
         let pages = [2, 9, 6, 8, 2, 4];
-        const lru = new PageFaultLRU(pages, 3);
+        this.pages = pages;
+        const lru = new PageFaultLRU(pages, this.quantityFrames);
         this.lru = lru;
         lru.traverse();
         //**********************************************Create Grid**********************************************
@@ -280,9 +315,9 @@ class intro extends Phaser.Scene {
 
         const iQuantityCol = 6;
         const iQuantityRow = 5;
-
         const WIDTH = 50;
         const posRowArr = {};
+        //only save
         const posColArr = {};
         for (let iRow = 0; iRow < iQuantityRow; iRow++) {
             posRowArr[`row${iRow}`] = [];
@@ -325,8 +360,9 @@ class intro extends Phaser.Scene {
             );
         }
         //**********************************************Make text value invisible**********************************************
+
         for (let iCol = 0; iCol < pages.length; iCol++)
-            for (let iItemIndex = 0; iItemIndex < 3; iItemIndex++) {
+            for (let iItemIndex = 0; iItemIndex < this.quantityFrames; iItemIndex++) {
                 if (lru.objData[`col${iCol}`][iItemIndex] !== undefined)
                     this.arrSolution.push(
                         this.add
@@ -387,11 +423,11 @@ class intro extends Phaser.Scene {
         this.slider();
 
         //**********************************************text trigger**********************************************
-
-        this.textTrigger();
+        this.showTextTrigger();
     }
 
     update(time, delta) {
+        //get index of item when base on index arr
         //update slider and show item based on showed item
         if (this.bIsPlaying) {
             this.slider.setValue(

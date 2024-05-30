@@ -154,9 +154,9 @@ class PageFaultLRU {
     }
 }
 
-//Test
-let pages = [2, 9, 6, 8, 2, 4, 3, 7, 5, 3, 9];
-let capacity = 3;
-let lru = new PageFaultLRU(pages, capacity);
-lru.traverse();
-console.log(lru.showObjectData());
+////Test
+//let pages = [2, 9, 6, 8, 2, 4, 3, 7, 5, 3, 9];
+//let capacity = 3;
+//let lru = new PageFaultLRU(pages, capacity);
+//lru.traverse();
+//console.log(lru.showObjectData());
