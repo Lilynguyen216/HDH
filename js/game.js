@@ -10,7 +10,7 @@ let config = {
     },
     fps: {
         forceSetTimeOut: true,
-        target: 0.5
+        target: 2
     },
     backgroundColor: '#E0C3FC',
     parent: 'gamePlay',

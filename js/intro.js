@@ -225,21 +225,12 @@ class intro extends Phaser.Scene {
         });
     }
     showOneItemSolution() {
-        if (this.iCurrentSolution < this.lru.getQuantityItemArr()) {
-            this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(true);
-            this.triggerText();
-            this.iCurrentSolution++;
-        }
+        this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(true);
+        this.triggerText();
     }
     hideOneItemSolution() {
-        if (this.iCurrentSolution >= 0) {
-            console.log(this.iCurrentSolution);
-            this.arrSolution[this.iCurrentSolution - 1]['textObj'].setVisible(
-                false,
-            );
-            this.triggerText();
-            this.iCurrentSolution--;
-        }
+        this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(false);
+        this.triggerText();
     }
 
     showTextTrigger() {
@@ -416,7 +407,10 @@ class intro extends Phaser.Scene {
             .setInteractive({ useHandCursor: true });
         btnForward.on('pointerdown', () => {
             this.showOneItemSolution();
-            if (this.bIsPLaying === false) this.bIsPlaying = true;
+            if (this.bIsPlaying === true) this.bIsPlaying = false;
+            console.log(this.bIsPlaying);
+            if (this.iCurrentSolution < this.lru.getQuantityItemArr() - 1)
+                this.iCurrentSolution++;
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
@@ -428,8 +422,11 @@ class intro extends Phaser.Scene {
             .rectangle(900, 100, WIDTH, WIDTH, '#f00000')
             .setInteractive({ useHandCursor: true });
         btnBackward.on('pointerdown', () => {
-            this.hideOneItemSolution();
-            if (this.bIsPLaying === false) this.bIsPlaying = true;
+            if (this.iCurrentSolution !== 0) this.hideOneItemSolution();
+            console.log(this.bIsPlaying === true);
+            if (this.bIsPlaying === true) this.bIsPlaying = false;
+
+            if (this.iCurrentSolution > 0) this.iCurrentSolution--;
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
@@ -470,6 +467,8 @@ class intro extends Phaser.Scene {
                 this.triggerText();
             }
             this.showOneItemSolution();
+            if (this.iCurrentSolution < this.lru.getQuantityItemArr() - 1)
+                this.iCurrentSolution++;
         }
     }
 }
