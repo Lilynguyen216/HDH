@@ -7,3 +7,11 @@
 		"Else:\n"
 		"    do nothing\n"
 :'<,'>s:\(.*\):\t\t"\1\\n":g
+
+
+this.arrSolution[i][binh].setColor
+this.arrSolution[askldjaslkj][binh].setColor
+this.arrSolution[sdjalksjd][binh].setColor
+this.arrSolution[sakdj][binh].setColor
+this.arrSolution[12312][binh].setColor
+this.arrSolution[i][binh].setColor

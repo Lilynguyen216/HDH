@@ -202,12 +202,12 @@ class intro extends Phaser.Scene {
 
             //Round down, when clicking, the value of slider between 0 and lru.getQuantityItemArr()
             const valueCurrentColumn = Math.floor(
-                this.slider.getValue(0, this.lru.getQuantityItemArr()),
+                this.slider.getValue(0, this.lru.getQuantityItemArr() - 1),
             );
             //set visible true for all object from 0 to valueCurrentColumn
             for (let i = 0; i < valueCurrentColumn; i++) {
                 console.log('visible', i);
-                this.arrSolution[i].setVisible(true);
+                this.arrSolution[i]['textObj'].setVisible(true);
             }
             //on the other hand, the others will be invisible
             for (
@@ -216,20 +216,23 @@ class intro extends Phaser.Scene {
                 i++
             ) {
                 console.log('not visible', i);
-                this.arrSolution[i].setVisible(false);
+                this.arrSolution[i]['textObj'].setVisible(false);
             }
             this.iCurrentSolution = valueCurrentColumn;
+            this.triggerText();
         });
     }
     showOneItemSolution() {
         if (this.iCurrentSolution < this.lru.getQuantityItemArr()) {
-            this.arrSolution[this.iCurrentSolution].setVisible(true);
+            this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(true);
             this.iCurrentSolution++;
         }
     }
     hideOneItemSolution() {
         if (this.iCurrentSolution >= 0) {
-            this.arrSolution[this.iCurrentSolution - 1].setVisible(false);
+            this.arrSolution[this.iCurrentSolution - 1]['textObj'].setVisible(
+                false,
+            );
             this.iCurrentSolution--;
         }
     }
@@ -261,7 +264,7 @@ class intro extends Phaser.Scene {
      ****************************************************/
     triggerText() {
         //reset color of all text trigger except 0
-        for(let iIndex = 1; iIndex < iIndex; iIndex++)
+        for (let iIndex = 1; iIndex < this.arrTXT.length; iIndex++)
             this.arrTXT[iIndex].setColor(COLOR_TXT_DARK);
         //transform to index of array in this.arrTXT
         const objTransform = {
@@ -280,18 +283,30 @@ class intro extends Phaser.Scene {
             1: [
                 objTransform[`txtNotContainPage`],
                 objTransform[`txtIncrePageFault`],
-                objTransform[`txtIncrePageFault`],
                 objTransform[`txtFull`],
+                objTransform[`txtAddFrames`],
             ],
             2: [objTransform[`txtContainPage`]],
         };
+        const posCol = this.arrSolution[this.iCurrentSolution]['posCol'];
+        const posIndex = this.arrSolution[this.iCurrentSolution]['posIndex'];
+        //array of text to trigger
+        const iTriggerText = this.lru.objData[posCol][posIndex]['textTrigger'];
+
+        for (
+            let iIndex = 0;
+            iIndex < obj[iTriggerText.toString()].length;
+            iIndex++
+        ) {
+            this.arrTXT[obj[iTriggerText][iIndex]].setColor(COLOR_TXT_LIGHT);
+        }
     }
     init() {
         // this.iCurrentColumn = 0;
         // this.iCurrentIndexItem = 0;
         // store all solution of pageReplacement
         this.arrSolution = [];
-        //for order of current item solution show on screen 
+        //for order of current item solution show on screen
         //Note this order is based on item is not undefined
         this.iCurrentSolution = 0;
 
@@ -360,12 +375,16 @@ class intro extends Phaser.Scene {
             );
         }
         //**********************************************Make text value invisible**********************************************
-
+        //Add to solution array
         for (let iCol = 0; iCol < pages.length; iCol++)
-            for (let iItemIndex = 0; iItemIndex < this.quantityFrames; iItemIndex++) {
+            for (
+                let iItemIndex = 0;
+                iItemIndex < this.quantityFrames;
+                iItemIndex++
+            ) {
                 if (lru.objData[`col${iCol}`][iItemIndex] !== undefined)
-                    this.arrSolution.push(
-                        this.add
+                    this.arrSolution.push({
+                        textObj: this.add
                             .text(
                                 posColArr[`col${iCol}`][iItemIndex].posX,
                                 posColArr[`col${iCol}`][iItemIndex].posY,
@@ -379,7 +398,9 @@ class intro extends Phaser.Scene {
                                 },
                             )
                             .setVisible(false),
-                    );
+                        posCol: `col${iCol}`,
+                        posIndex: iItemIndex,
+                    });
             }
 
         //**********************************************Button forward, backward, stop step**********************************************
@@ -433,10 +454,14 @@ class intro extends Phaser.Scene {
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.lru.getQuantityItemArr(),
+                this.lru.getQuantityItemArr() - 1,
             );
+            //console.log(this.arrSolution[this.iCurrentSolution]['posIndex']);
+            const iIndexItemOnCol = this.arrSolution[this.iCurrentSolution]['posIndex'];
+            if (iIndexItemOnCol === 0) {
+                this.triggerText();
+            }
             this.showOneItemSolution();
-        } else {
         }
     }
 }
