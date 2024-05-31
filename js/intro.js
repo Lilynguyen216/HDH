@@ -1,4 +1,4 @@
-class PageFaultLRU {
+class PageFaultFIFO {
     /****************************************************
      * @param {Array} pages
      * @param {int} iMaxFrames
@@ -10,11 +10,8 @@ class PageFaultLRU {
         this.frames = new Set();
         this.pages = pages;
 
-        // To store least recently used indexes
-        // of pages.
-        // {iPageItem: indexOfPage(order)}
-        this.order = new Map();
-
+        //track order of page in frames working like queue
+        this.order = [];
         this.pageFault = 0;
 
         this.iMaxFrames = iMaxFrames;
@@ -29,6 +26,9 @@ class PageFaultLRU {
         this.objData = {};
 
         this.currentCol = 0;
+        
+
+        this.bIsElse = true;
     }
     showObjectData() {
         for (const key in this.objData) {
@@ -36,11 +36,13 @@ class PageFaultLRU {
         }
     }
     traverse() {
+        //console.log(this.pages.length);
         for (let i = 0; i < this.pages.length; i++) {
             this.setHoldLessPage(this.pages[i], i);
             this.replacePage(this.pages[i], i);
-            if (this.iCurrentCapacity !== this.iMaxFrames)
-                this.iCurrentCapacity++;
+            //if (this.iCurrentCapacity !== this.iMaxFrames)
+            //    this.iCurrentCapacity++;
+            if (this.currentCol < this.pages.length) this.currentCol++;
         }
     }
 
@@ -50,30 +52,48 @@ class PageFaultLRU {
      * @param {int} iIndexPageItem order of page item in pages
      ****************************************************/
     setHoldLessPage(iPageItem, iIndexPageItem) {
-        if (this.iCurrentCapacity < this.iMaxFrames) {
+        this.bIsElse = true;
+        const setReplacedPageFalse = (arrItemObj) => {
+            for (let i = 0; i < arrItemObj.length; i++) {
+                arrItemObj[i].replacedPage = false;
+            }
+        };
+        if (this.frames.size < this.iMaxFrames) {
+            this.bIsElse = false;
+            if (this.currentCol === 0)
+                this.objData[`col${this.currentCol}`] = [];
+            else
+                this.objData[`col${this.currentCol}`] = JSON.parse(
+                    JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
+                );
+            setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
                 this.frames.add(iPageItem);
                 this.pageFault++;
+                this.order.push(iPageItem);
+                this.objData[`col${this.currentCol}`].push({
+                    textVal: iPageItem,
+                    replacedPage: true,
+                });
+                // console.log(this.objData[`col${this.currentCol}`]);
+                this.objData[`col${this.currentCol}`][0].textTrigger = 0;
             } else {
                 this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
 
-            if (this.currentCol === 0)
-                this.objData[`col${this.currentCol}`] = [];
-            else
-                this.objData[`col${this.currentCol}`] = [
-                    ...this.objData[`col${this.currentCol - 1}`],
-                ];
-            this.objData[`col${this.currentCol}`].push({
-                textTrigger: 0,
-                textVal: iPageItem,
-                replacedPage: false,
-            });
+            //if (this.currentCol === 0)
+            //    this.objData[`col${this.currentCol}`] = [];
+            //else
+            //    this.objData[`col${this.currentCol}`] = [
+            //        ...this.objData[`col${this.currentCol - 1}`],
+            //    ];
+            //this.objData[`col${this.currentCol}`].push({
+            //    textVal: iPageItem,
+            //    replacedPage: bIsReplacedPage,
+            //});
             //console.log(this.objData[`col${this.currentCol}`]);
-            this.objData[`col${this.currentCol}`][0].textTrigger = 0;
-            this.order.set(iPageItem, iIndexPageItem);
             //only this has text{0, 2}
-            this.currentCol++;
+            //this.currentCol++;
         }
     }
 
@@ -83,34 +103,33 @@ class PageFaultLRU {
      * @param {int} iIndexPageItem order of page item in pages
      ****************************************************/
     replacePage(iPageItem, iIndexPageItem) {
-        const replaceWithValue = (arr, value, replace) => {
-            for (let i = 0; i < this.iMaxFrames; i++)
-                if (arr[i].textVal === value) arr[i] = replace;
-        };
-
         const setReplacedPageFalse = (arrItemObj) => {
             for (let i = 0; i < arrItemObj.length; i++) {
                 arrItemObj[i].replacedPage = false;
             }
         };
-        if (this.iCurrentCapacity === this.iMaxFrames) {
+        const replaceWithValue = (arr, value, replace) => {
+            for (let i = 0; i < arr.length; i++)
+                if (arr[i].textVal === value) arr[i] = replace;
+        };
+        if (this.frames.size === this.iMaxFrames && this.bIsElse) {
+            //if (this.iCurrentCapacity === this.iMaxFrames) {
             this.objData[`col${this.currentCol}`] = JSON.parse(
                 JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
             );
+
             setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
-                let iLeastUsedPage = Number.MAX_VALUE,
-                    iMinOrder = Number.MAX_VALUE;
+                let iValFirstItem = this.order[0];
+                //console.log(iValFirstItem);
 
-                // Find the least recently used pages
-                // that is present in the set
-                for (let itr of this.frames.values())
-                    if (this.order.get(itr) < iMinOrder) {
-                        iMinOrder = this.order.get(itr);
-                        iLeastUsedPage = itr;
-                    }
+                this.order.shift();
 
-                //BUG
+                this.frames.delete(iValFirstItem);
+
+                this.frames.add(iPageItem);
+                this.order.push(iPageItem);
+                this.pageFault++;
                 const replaceItem = {
                     textVal: iPageItem,
                     replacedPage: true,
@@ -118,22 +137,16 @@ class PageFaultLRU {
 
                 replaceWithValue(
                     this.objData[`col${this.currentCol}`],
-                    iLeastUsedPage,
+                    iValFirstItem,
                     replaceItem,
                 );
 
-                this.pageFault++;
-                this.frames.delete(iLeastUsedPage);
-                this.order.delete(iLeastUsedPage);
-
-                this.frames.add(iPageItem);
                 this.objData[`col${this.currentCol}`][0].textTrigger = 1;
             } else {
                 this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
-            this.order.set(iPageItem, iIndexPageItem);
 
-            this.currentCol++;
+            //this.currentCol++;
         }
     }
     /****************************************************
@@ -146,10 +159,6 @@ class PageFaultLRU {
             for (let iIndex = 0; iIndex < this.objData[key].length; iIndex++)
                 iResult++;
         return iResult;
-    }
-
-    transformSignalTextTrigger() {
-        const transformation = {};
     }
 }
 //*****************************Color for slider*****************************
@@ -166,7 +175,8 @@ const TXT_ALWAYS = "For each 'page' in 'pages':";
 const TXT_CONDITION_NOT_CPAGE = `   If 'frames' does not contain 'page':`;
 const TXT_INCRE_PAGEFAULT = `       Increment 'pageFaults''`;
 const TXT_FULL = `      If 'frames' is full:\n
-            Remove the least recently used page from 'frames'`;
+            Remove oldest page based on its order when added to frames
+`;
 const TXT_ADD_PAGE = `      Add 'page' to 'frames'`;
 const TXT_CONDITION_CPAGE = `   Else:\n 
         Do nothing`;
@@ -202,7 +212,7 @@ class intro extends Phaser.Scene {
 
             //Round down, when clicking, the value of slider between 0 and lru.getQuantityItemArr() - 1
             const valueCurrentSolution = Math.floor(
-                this.slider.getValue(0, this.lru.getQuantityItemArr() - 1),
+                this.slider.getValue(0, this.fifo.getQuantityItemArr() - 1),
             );
             //set visible true for all object from 0 to valueCurrentSolution
             for (let i = 0; i <= valueCurrentSolution; i++) {
@@ -212,7 +222,7 @@ class intro extends Phaser.Scene {
             //on the other hand, the others will be invisible
             for (
                 let i = valueCurrentSolution + 1;
-                i < this.lru.getQuantityItemArr();
+                i < this.fifo.getQuantityItemArr();
                 i++
             ) {
                 //console.log('not visible', i);
@@ -289,7 +299,7 @@ class intro extends Phaser.Scene {
         //always 0 for index based on column
         const posIndex = 0;
         //array of text to trigger
-        const iTriggerText = this.lru.objData[posCol][posIndex]['textTrigger'];
+        const iTriggerText = this.fifo.objData[posCol][posIndex]['textTrigger'];
 
         for (
             let iIndex = 0;
@@ -308,7 +318,7 @@ class intro extends Phaser.Scene {
         //Note this order is based on item is not undefined
         this.iCurrentSolution = 0;
 
-        this.lru;
+        this.fifo;
 
         this.bIsPlaying = false;
         //for txt object pseduo code
@@ -317,11 +327,11 @@ class intro extends Phaser.Scene {
     }
     create() {
         this.quantityFrames = 3;
-        let pages = [2, 9, 6, 8, 2, 4];
+        let pages = [2, 2, 6, 8, 2, 4];
         this.pages = pages;
-        const lru = new PageFaultLRU(pages, this.quantityFrames);
-        this.lru = lru;
-        lru.traverse();
+        const fifo = new PageFaultFIFO(pages, this.quantityFrames);
+        this.fifo = fifo;
+        fifo.traverse();
         //**********************************************Create Grid**********************************************
         let posX = 100,
             posY = 100;
@@ -380,16 +390,16 @@ class intro extends Phaser.Scene {
                 iItemIndex < this.quantityFrames;
                 iItemIndex++
             ) {
-                if (lru.objData[`col${iCol}`][iItemIndex] !== undefined)
+                if (fifo.objData[`col${iCol}`][iItemIndex] !== undefined)
                     this.arrSolution.push({
                         textObj: this.add
                             .text(
                                 posColArr[`col${iCol}`][iItemIndex].posX,
                                 posColArr[`col${iCol}`][iItemIndex].posY,
-                                lru.objData[`col${iCol}`][iItemIndex].textVal,
+                                fifo.objData[`col${iCol}`][iItemIndex].textVal,
                                 {
                                     color:
-                                        lru.objData[`col${iCol}`][iItemIndex]
+                                        fifo.objData[`col${iCol}`][iItemIndex]
                                             .replacedPage === true
                                             ? COLOR_TXT_REPLACED_PAGE
                                             : COLOR_TXT_LIGHT,
@@ -409,12 +419,12 @@ class intro extends Phaser.Scene {
             this.showOneItemSolution();
             if (this.bIsPlaying === true) this.bIsPlaying = false;
             console.log(this.bIsPlaying);
-            if (this.iCurrentSolution < this.lru.getQuantityItemArr() - 1)
+            if (this.iCurrentSolution < this.fifo.getQuantityItemArr() - 1)
                 this.iCurrentSolution++;
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.lru.getQuantityItemArr(),
+                this.fifo.getQuantityItemArr(),
             );
         });
 
@@ -430,7 +440,7 @@ class intro extends Phaser.Scene {
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.lru.getQuantityItemArr(),
+                this.fifo.getQuantityItemArr(),
             );
         });
 
@@ -458,7 +468,7 @@ class intro extends Phaser.Scene {
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.lru.getQuantityItemArr() - 1,
+                this.fifo.getQuantityItemArr() - 1,
             );
             //console.log(this.arrSolution[this.iCurrentSolution]['posIndex']);
             const iIndexItemOnCol =
@@ -467,7 +477,7 @@ class intro extends Phaser.Scene {
                 this.triggerText();
             }
             this.showOneItemSolution();
-            if (this.iCurrentSolution < this.lru.getQuantityItemArr() - 1)
+            if (this.iCurrentSolution < this.fifo.getQuantityItemArr() - 1)
                 this.iCurrentSolution++;
         }
     }

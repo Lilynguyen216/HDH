@@ -1,0 +1,8 @@
+For each 'page' in 'pages':
+    If 'frames' does not contain 'page':
+        Increment 'pageFaults'
+        If 'frames' is full:
+            Remove the oldest page based on its order when added to frames
+        Add 'page' to 'frames'
+    Else:
+        do nothing
