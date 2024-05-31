@@ -29,6 +29,9 @@ class PageFaultLRU {
         this.objData = {};
 
         this.currentCol = 0;
+
+        //used for if else
+        this.bIsElse = false;
     }
     showObjectData() {
         for (const key in this.objData) {
@@ -39,8 +42,7 @@ class PageFaultLRU {
         for (let i = 0; i < this.pages.length; i++) {
             this.setHoldLessPage(this.pages[i], i);
             this.replacePage(this.pages[i], i);
-            if (this.iCurrentCapacity !== this.iMaxFrames)
-                this.iCurrentCapacity++;
+            if (this.currentCol < this.pages.length) this.currentCol++;
         }
     }
 
@@ -50,30 +52,42 @@ class PageFaultLRU {
      * @param {int} iIndexPageItem order of page item in pages
      ****************************************************/
     setHoldLessPage(iPageItem, iIndexPageItem) {
-        if (this.iCurrentCapacity < this.iMaxFrames) {
+        this.bIsElse = true;
+        const setReplacedPageFalse = (arrItemObj) => {
+            for (let i = 0; i < arrItemObj.length; i++) {
+                arrItemObj[i].replacedPage = false;
+            }
+        };
+        if (this.frames.size < this.iMaxFrames) {
+            this.bIsElse = false;
+            if (this.currentCol === 0)
+                this.objData[`col${this.currentCol}`] = [];
+            else
+                this.objData[`col${this.currentCol}`] = JSON.parse(
+                    JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
+                );
+            setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
                 this.frames.add(iPageItem);
                 this.pageFault++;
+                this.objData[`col${this.currentCol}`].push({
+                    textVal: iPageItem,
+                    replacedPage: true,
+                });
+                this.objData[`col${this.currentCol}`][0].textTrigger = 0;
             } else {
                 this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
 
-            if (this.currentCol === 0)
-                this.objData[`col${this.currentCol}`] = [];
-            else
-                this.objData[`col${this.currentCol}`] = [
-                    ...this.objData[`col${this.currentCol - 1}`],
-                ];
-            this.objData[`col${this.currentCol}`].push({
-                textTrigger: 0,
-                textVal: iPageItem,
-                replacedPage: false,
-            });
+            // if (this.currentCol === 0)
+            //     this.objData[`col${this.currentCol}`] = [];
+            // else
+            //     this.objData[`col${this.currentCol}`] = [
+            //         ...this.objData[`col${this.currentCol - 1}`],
+            //     ];
             //console.log(this.objData[`col${this.currentCol}`]);
-            this.objData[`col${this.currentCol}`][0].textTrigger = 0;
             this.order.set(iPageItem, iIndexPageItem);
             //only this has text{0, 2}
-            this.currentCol++;
         }
     }
 
@@ -84,7 +98,7 @@ class PageFaultLRU {
      ****************************************************/
     replacePage(iPageItem, iIndexPageItem) {
         const replaceWithValue = (arr, value, replace) => {
-            for (let i = 0; i < this.iMaxFrames; i++)
+            for (let i = 0; i < arr.length; i++)
                 if (arr[i].textVal === value) arr[i] = replace;
         };
 
@@ -93,10 +107,12 @@ class PageFaultLRU {
                 arrItemObj[i].replacedPage = false;
             }
         };
-        if (this.iCurrentCapacity === this.iMaxFrames) {
+        if (this.frames.size === this.iMaxFrames && this.bIsElse) {
+            //NOTE
             this.objData[`col${this.currentCol}`] = JSON.parse(
                 JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
             );
+
             setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
                 let iLeastUsedPage = Number.MAX_VALUE,
@@ -133,7 +149,7 @@ class PageFaultLRU {
             }
             this.order.set(iPageItem, iIndexPageItem);
 
-            this.currentCol++;
+            //this.currentCol++;
         }
     }
     /****************************************************
@@ -146,10 +162,6 @@ class PageFaultLRU {
             for (let iIndex = 0; iIndex < this.objData[key].length; iIndex++)
                 iResult++;
         return iResult;
-    }
-
-    transformSignalTextTrigger() {
-        const transformation = {};
     }
 }
 //*****************************Color for slider*****************************
@@ -229,7 +241,9 @@ class intro extends Phaser.Scene {
         this.triggerText();
     }
     hideOneItemSolution() {
-        this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(false);
+        this.arrSolution[this.iCurrentSolution - 1]['textObj'].setVisible(
+            false,
+        );
         this.triggerText();
     }
 
@@ -408,13 +422,12 @@ class intro extends Phaser.Scene {
         btnForward.on('pointerdown', () => {
             this.showOneItemSolution();
             if (this.bIsPlaying === true) this.bIsPlaying = false;
-            console.log(this.bIsPlaying);
             if (this.iCurrentSolution < this.lru.getQuantityItemArr() - 1)
                 this.iCurrentSolution++;
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.lru.getQuantityItemArr(),
+                this.lru.getQuantityItemArr()  ,
             );
         });
 
@@ -423,7 +436,6 @@ class intro extends Phaser.Scene {
             .setInteractive({ useHandCursor: true });
         btnBackward.on('pointerdown', () => {
             if (this.iCurrentSolution !== 0) this.hideOneItemSolution();
-            console.log(this.bIsPlaying === true);
             if (this.bIsPlaying === true) this.bIsPlaying = false;
 
             if (this.iCurrentSolution > 0) this.iCurrentSolution--;
@@ -460,6 +472,7 @@ class intro extends Phaser.Scene {
                 0,
                 this.lru.getQuantityItemArr() - 1,
             );
+            console.log(this.lru.getQuantityItemArr());
             //console.log(this.arrSolution[this.iCurrentSolution]['posIndex']);
             const iIndexItemOnCol =
                 this.arrSolution[this.iCurrentSolution]['posIndex'];

@@ -32,6 +32,9 @@ class PageFaultLRU {
         this.objData = {};
 
         this.currentCol = 0;
+
+        //used for if else
+        this.bIsElse = false;
     }
     showObjectData() {
         for (const key in this.objData) {
@@ -42,8 +45,7 @@ class PageFaultLRU {
         for (let i = 0; i < this.pages.length; i++) {
             this.setHoldLessPage(this.pages[i], i);
             this.replacePage(this.pages[i], i);
-            if (this.iCurrentCapacity !== this.iMaxFrames)
-                this.iCurrentCapacity++;
+            if (this.currentCol < this.pages.length) this.currentCol++;
         }
     }
 
@@ -53,30 +55,42 @@ class PageFaultLRU {
      * @param {int} iIndexPageItem order of page item in pages
      ****************************************************/
     setHoldLessPage(iPageItem, iIndexPageItem) {
-        if (this.iCurrentCapacity < this.iMaxFrames) {
+        this.bIsElse = true;
+        const setReplacedPageFalse = (arrItemObj) => {
+            for (let i = 0; i < arrItemObj.length; i++) {
+                arrItemObj[i].replacedPage = false;
+            }
+        };
+        if (this.frames.size < this.iMaxFrames) {
+            this.bIsElse = false;
+            if (this.currentCol === 0)
+                this.objData[`col${this.currentCol}`] = [];
+            else
+                this.objData[`col${this.currentCol}`] = JSON.parse(
+                    JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
+                );
+            setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
                 this.frames.add(iPageItem);
                 this.pageFault++;
+                this.objData[`col${this.currentCol}`].push({
+                    textVal: iPageItem,
+                    replacedPage: true,
+                });
+                this.objData[`col${this.currentCol}`][0].textTrigger = 0;
             } else {
                 this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
 
-            if (this.currentCol === 0)
-                this.objData[`col${this.currentCol}`] = [];
-            else
-                this.objData[`col${this.currentCol}`] = [
-                    ...this.objData[`col${this.currentCol - 1}`],
-                ];
-            this.objData[`col${this.currentCol}`].push({
-                textTrigger: 0,
-                textVal: iPageItem,
-                replacedPage: false,
-            });
+           // if (this.currentCol === 0)
+           //     this.objData[`col${this.currentCol}`] = [];
+           // else
+           //     this.objData[`col${this.currentCol}`] = [
+           //         ...this.objData[`col${this.currentCol - 1}`],
+           //     ];
             //console.log(this.objData[`col${this.currentCol}`]);
-            this.objData[`col${this.currentCol}`][0].textTrigger = 0;
             this.order.set(iPageItem, iIndexPageItem);
             //only this has text{0, 2}
-            this.currentCol++;
         }
     }
 
@@ -87,7 +101,7 @@ class PageFaultLRU {
      ****************************************************/
     replacePage(iPageItem, iIndexPageItem) {
         const replaceWithValue = (arr, value, replace) => {
-            for (let i = 0; i < this.iMaxFrames; i++)
+            for (let i = 0; i < arr.length; i++)
                 if (arr[i].textVal === value) arr[i] = replace;
         };
 
@@ -96,12 +110,11 @@ class PageFaultLRU {
                 arrItemObj[i].replacedPage = false;
             }
         };
-        if (this.iCurrentCapacity === this.iMaxFrames) {
+        if (this.frames.size === this.iMaxFrames && this.bIsElse) {
             //NOTE
             this.objData[`col${this.currentCol}`] = JSON.parse(
                 JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
             );
-
 
             setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
@@ -139,7 +152,7 @@ class PageFaultLRU {
             }
             this.order.set(iPageItem, iIndexPageItem);
 
-            this.currentCol++;
+            //this.currentCol++;
         }
     }
     /****************************************************
@@ -149,13 +162,14 @@ class PageFaultLRU {
     getQuantityItemArr() {
         let iResult = 0;
         for (const key in this.objData)
-            for (let iIndex = 0; iIndex < this.objData[key].length; iIndex++) iResult++;
+            for (let iIndex = 0; iIndex < this.objData[key].length; iIndex++)
+                iResult++;
         return iResult;
     }
 }
 
 ////Test
-//let pages = [2, 9, 6, 8, 2, 4, 3, 7, 5, 3, 9];
+//let pages = [2, 2, 6, 8, 2, 4, 3, 7, 5, 3, 9];
 //let capacity = 3;
 //let lru = new PageFaultLRU(pages, capacity);
 //lru.traverse();
