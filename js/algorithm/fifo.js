@@ -1,4 +1,4 @@
-// source: https://www.geeksforgeeks.org/program-for-least-recently-used-lru-page-replacement-algorithm/?ref=lbp
+// source: https://www.geeksforgeeks.org/program-page-replacement-algorithms-set-2-fifo/
 // JavaScript implementation of above algorithm
 
 class PageFaultLRU {
@@ -13,11 +13,8 @@ class PageFaultLRU {
         this.frames = new Set();
         this.pages = pages;
 
-        // To store least recently used indexes
-        // of pages.
-        // {iPageItem: indexOfPage(order)}
-        this.order = new Map();
-
+        //track order of page in frames working like queue
+        this.order = [];
         this.pageFault = 0;
 
         this.iMaxFrames = iMaxFrames;
@@ -57,6 +54,7 @@ class PageFaultLRU {
             if (!this.frames.has(iPageItem)) {
                 this.frames.add(iPageItem);
                 this.pageFault++;
+                this.order.push(iPageItem);
             } else {
                 this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
