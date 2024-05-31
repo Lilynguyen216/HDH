@@ -23,4 +23,7 @@ console.log(key, obj[key])
 
 
 # Bug
-Data structure of setHoldLessPage have textTrigger key in all item in array of columni
+1. Data structure of setHoldLessPage have textTrigger key in all item in array of columni
+2. Remove all files with swp extension
+
+
