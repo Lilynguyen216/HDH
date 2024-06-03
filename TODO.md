@@ -21,3 +21,5 @@ console.log(key, obj[key])
 3. using copy without reference
 
 4. Working in git when doing group
+# BUG
+when clicking forward button cause bug in slider
