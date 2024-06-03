@@ -424,7 +424,7 @@ class intro extends Phaser.Scene {
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.fifo.getQuantityItemArr(),
+                this.fifo.getQuantityItemArr() - 1,
             );
         });
 
@@ -432,7 +432,7 @@ class intro extends Phaser.Scene {
             .rectangle(900, 100, WIDTH, WIDTH, '#f00000')
             .setInteractive({ useHandCursor: true });
         btnBackward.on('pointerdown', () => {
-            if (this.iCurrentSolution !== 0) this.hideOneItemSolution();
+            this.hideOneItemSolution();
             console.log(this.bIsPlaying === true);
             if (this.bIsPlaying === true) this.bIsPlaying = false;
 
