@@ -241,9 +241,7 @@ class intro extends Phaser.Scene {
         this.triggerText();
     }
     hideOneItemSolution() {
-        this.arrSolution[this.iCurrentSolution - 1]['textObj'].setVisible(
-            false,
-        );
+        this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(false);
         this.triggerText();
     }
 
@@ -427,7 +425,7 @@ class intro extends Phaser.Scene {
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.lru.getQuantityItemArr()  ,
+                this.lru.getQuantityItemArr() - 1,
             );
         });
 
@@ -435,14 +433,13 @@ class intro extends Phaser.Scene {
             .rectangle(900, 100, WIDTH, WIDTH, '#f00000')
             .setInteractive({ useHandCursor: true });
         btnBackward.on('pointerdown', () => {
-            if (this.iCurrentSolution !== 0) this.hideOneItemSolution();
+            this.hideOneItemSolution();
             if (this.bIsPlaying === true) this.bIsPlaying = false;
-
             if (this.iCurrentSolution > 0) this.iCurrentSolution--;
             this.slider.setValue(
                 this.iCurrentSolution,
                 0,
-                this.lru.getQuantityItemArr(),
+                this.lru.getQuantityItemArr() - 1,
             );
         });
 
