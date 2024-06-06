@@ -14,6 +14,6 @@ let config = {
     },
     backgroundColor: '#E0C3FC',
     parent: 'gamePlay',
-    scene: intro,
+    scene: [introScene, lruScene, fifoScene],
 };
 const game = new Phaser.Game(config);

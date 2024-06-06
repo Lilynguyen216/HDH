@@ -1,7 +1,7 @@
-// source: https://www.geeksforgeeks.org/program-for-least-recently-used-lru-page-replacement-algorithm/?ref=lbp
+// source: https://www.geeksforgeeks.org/program-page-replacement-algorithms-set-2-fifo/
 // JavaScript implementation of above algorithm
 
-class PageFaultLRU {
+class PageFaultFIFO {
     /****************************************************
      * @param {Array} pages
      * @param {int} iMaxFrames
@@ -13,11 +13,8 @@ class PageFaultLRU {
         this.frames = new Set();
         this.pages = pages;
 
-        // To store least recently used indexes
-        // of pages.
-        // {iPageItem: indexOfPage(order)}
-        this.order = new Map();
-
+        //track order of page in frames working like queue
+        this.order = [];
         this.pageFault = 0;
 
         this.iMaxFrames = iMaxFrames;
@@ -32,9 +29,9 @@ class PageFaultLRU {
         this.objData = {};
 
         this.currentCol = 0;
+        
 
-        //used for if else
-        this.bIsElse = false;
+        this.bIsElse = true;
     }
     showObjectData() {
         for (const key in this.objData) {
@@ -42,10 +39,12 @@ class PageFaultLRU {
         }
     }
     traverse() {
+        //console.log(this.pages.length);
         for (let i = 0; i < this.pages.length; i++) {
-            console.log(i);
             this.setHoldLessPage(this.pages[i], i);
             this.replacePage(this.pages[i], i);
+            //if (this.iCurrentCapacity !== this.iMaxFrames)
+            //    this.iCurrentCapacity++;
             if (this.currentCol < this.pages.length) this.currentCol++;
         }
     }
@@ -74,24 +73,30 @@ class PageFaultLRU {
             if (!this.frames.has(iPageItem)) {
                 this.frames.add(iPageItem);
                 this.pageFault++;
+                this.order.push(iPageItem);
                 this.objData[`col${this.currentCol}`].push({
                     textVal: iPageItem,
                     replacedPage: true,
                 });
                 this.objData[`col${this.currentCol}`][0].textTrigger = 0;
+                // console.log(this.objData[`col${this.currentCol}`]);
             } else {
                 this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
 
-           // if (this.currentCol === 0)
-           //     this.objData[`col${this.currentCol}`] = [];
-           // else
-           //     this.objData[`col${this.currentCol}`] = [
-           //         ...this.objData[`col${this.currentCol - 1}`],
-           //     ];
+            //if (this.currentCol === 0)
+            //    this.objData[`col${this.currentCol}`] = [];
+            //else
+            //    this.objData[`col${this.currentCol}`] = [
+            //        ...this.objData[`col${this.currentCol - 1}`],
+            //    ];
+            //this.objData[`col${this.currentCol}`].push({
+            //    textVal: iPageItem,
+            //    replacedPage: bIsReplacedPage,
+            //});
             //console.log(this.objData[`col${this.currentCol}`]);
-            this.order.set(iPageItem, iIndexPageItem);
             //only this has text{0, 2}
+            //this.currentCol++;
         }
     }
 
@@ -101,36 +106,33 @@ class PageFaultLRU {
      * @param {int} iIndexPageItem order of page item in pages
      ****************************************************/
     replacePage(iPageItem, iIndexPageItem) {
-        const replaceWithValue = (arr, value, replace) => {
-            for (let i = 0; i < arr.length; i++)
-                if (arr[i].textVal === value) arr[i] = replace;
-        };
-
         const setReplacedPageFalse = (arrItemObj) => {
             for (let i = 0; i < arrItemObj.length; i++) {
                 arrItemObj[i].replacedPage = false;
             }
         };
+        const replaceWithValue = (arr, value, replace) => {
+            for (let i = 0; i < arr.length; i++)
+                if (arr[i].textVal === value) arr[i] = replace;
+        };
         if (this.frames.size === this.iMaxFrames && this.bIsElse) {
-            //NOTE
+            //if (this.iCurrentCapacity === this.iMaxFrames) {
             this.objData[`col${this.currentCol}`] = JSON.parse(
                 JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
             );
 
             setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
             if (!this.frames.has(iPageItem)) {
-                let iLeastUsedPage = Number.MAX_VALUE,
-                    iMinOrder = Number.MAX_VALUE;
+                let iValFirstItem = this.order[0];
+                //console.log(iValFirstItem);
 
-                // Find the least recently used pages
-                // that is present in the set
-                for (let itr of this.frames.values())
-                    if (this.order.get(itr) < iMinOrder) {
-                        iMinOrder = this.order.get(itr);
-                        iLeastUsedPage = itr;
-                    }
+                this.order.shift();
 
-                //BUG
+                this.frames.delete(iValFirstItem);
+
+                this.frames.add(iPageItem);
+                this.order.push(iPageItem);
+                this.pageFault++;
                 const replaceItem = {
                     textVal: iPageItem,
                     replacedPage: true,
@@ -138,20 +140,14 @@ class PageFaultLRU {
 
                 replaceWithValue(
                     this.objData[`col${this.currentCol}`],
-                    iLeastUsedPage,
+                    iValFirstItem,
                     replaceItem,
                 );
 
-                this.pageFault++;
-                this.frames.delete(iLeastUsedPage);
-                this.order.delete(iLeastUsedPage);
-
-                this.frames.add(iPageItem);
                 this.objData[`col${this.currentCol}`][0].textTrigger = 1;
             } else {
                 this.objData[`col${this.currentCol}`][0].textTrigger = 2;
             }
-            this.order.set(iPageItem, iIndexPageItem);
 
             //this.currentCol++;
         }
@@ -169,14 +165,15 @@ class PageFaultLRU {
     }
 }
 
-//Test
-//let pages = [1, 2, 3, 4];
-//let capacity = 2;
-//let lru = new PageFaultLRU(pages, capacity);
-//lru.traverse();
-//console.log(lru.showObjectData());
+////Test
+//let pages = [2, 2, 6, 8, 2, 4];
+//let capacity = 3;
+//let fifo = new PageFaultFIFO(pages, capacity);
+//fifo.traverse();
+//console.log(fifo.objData);
 //
-//class PageFaultLRU {
+
+//class PageFaultFIFO {
 //    /****************************************************
 //     * @param {Array} pages
 //     * @param {int} iMaxFrames
@@ -188,11 +185,8 @@ class PageFaultLRU {
 //        this.frames = new Set();
 //        this.pages = pages;
 //
-//        // To store least recently used indexes
-//        // of pages.
-//        // {iPageItem: indexOfPage(order)}
-//        this.order = new Map();
-//
+//        //track order of page in frames working like queue
+//        this.order = [];
 //        this.pageFault = 0;
 //
 //        this.iMaxFrames = iMaxFrames;
@@ -208,8 +202,8 @@ class PageFaultLRU {
 //
 //        this.currentCol = 0;
 //
-//        //used for if else
-//        this.bIsElse = false;
+//
+//        this.bIsElse = true;
 //    }
 //    showObjectData() {
 //        for (const key in this.objData) {
@@ -217,9 +211,12 @@ class PageFaultLRU {
 //        }
 //    }
 //    traverse() {
+//        //console.log(this.pages.length);
 //        for (let i = 0; i < this.pages.length; i++) {
 //            this.setHoldLessPage(this.pages[i], i);
 //            this.replacePage(this.pages[i], i);
+//            //if (this.iCurrentCapacity !== this.iMaxFrames)
+//            //    this.iCurrentCapacity++;
 //            if (this.currentCol < this.pages.length) this.currentCol++;
 //        }
 //    }
@@ -248,24 +245,30 @@ class PageFaultLRU {
 //            if (!this.frames.has(iPageItem)) {
 //                this.frames.add(iPageItem);
 //                this.pageFault++;
+//                this.order.push(iPageItem);
 //                this.objData[`col${this.currentCol}`].push({
 //                    textVal: iPageItem,
 //                    replacedPage: true,
 //                });
+//                // console.log(this.objData[`col${this.currentCol}`]);
 //                this.objData[`col${this.currentCol}`][0].textTrigger = 0;
 //            } else {
 //                this.objData[`col${this.currentCol}`][0].textTrigger = 2;
 //            }
 //
-//            // if (this.currentCol === 0)
-//            //     this.objData[`col${this.currentCol}`] = [];
-//            // else
-//            //     this.objData[`col${this.currentCol}`] = [
-//            //         ...this.objData[`col${this.currentCol - 1}`],
-//            //     ];
+//            //if (this.currentCol === 0)
+//            //    this.objData[`col${this.currentCol}`] = [];
+//            //else
+//            //    this.objData[`col${this.currentCol}`] = [
+//            //        ...this.objData[`col${this.currentCol - 1}`],
+//            //    ];
+//            //this.objData[`col${this.currentCol}`].push({
+//            //    textVal: iPageItem,
+//            //    replacedPage: bIsReplacedPage,
+//            //});
 //            //console.log(this.objData[`col${this.currentCol}`]);
-//            this.order.set(iPageItem, iIndexPageItem);
 //            //only this has text{0, 2}
+//            //this.currentCol++;
 //        }
 //    }
 //
@@ -275,36 +278,33 @@ class PageFaultLRU {
 //     * @param {int} iIndexPageItem order of page item in pages
 //     ****************************************************/
 //    replacePage(iPageItem, iIndexPageItem) {
-//        const replaceWithValue = (arr, value, replace) => {
-//            for (let i = 0; i < arr.length; i++)
-//                if (arr[i].textVal === value) arr[i] = replace;
-//        };
-//
 //        const setReplacedPageFalse = (arrItemObj) => {
 //            for (let i = 0; i < arrItemObj.length; i++) {
 //                arrItemObj[i].replacedPage = false;
 //            }
 //        };
+//        const replaceWithValue = (arr, value, replace) => {
+//            for (let i = 0; i < arr.length; i++)
+//                if (arr[i].textVal === value) arr[i] = replace;
+//        };
 //        if (this.frames.size === this.iMaxFrames && this.bIsElse) {
-//            //NOTE
+//            //if (this.iCurrentCapacity === this.iMaxFrames) {
 //            this.objData[`col${this.currentCol}`] = JSON.parse(
 //                JSON.stringify(this.objData[`col${this.currentCol - 1}`]),
 //            );
 //
 //            setReplacedPageFalse(this.objData[`col${this.currentCol}`]);
 //            if (!this.frames.has(iPageItem)) {
-//                let iLeastUsedPage = Number.MAX_VALUE,
-//                    iMinOrder = Number.MAX_VALUE;
+//                let iValFirstItem = this.order[0];
+//                //console.log(iValFirstItem);
 //
-//                // Find the least recently used pages
-//                // that is present in the set
-//                for (let itr of this.frames.values())
-//                    if (this.order.get(itr) < iMinOrder) {
-//                        iMinOrder = this.order.get(itr);
-//                        iLeastUsedPage = itr;
-//                    }
+//                this.order.shift();
 //
-//                //BUG
+//                this.frames.delete(iValFirstItem);
+//
+//                this.frames.add(iPageItem);
+//                this.order.push(iPageItem);
+//                this.pageFault++;
 //                const replaceItem = {
 //                    textVal: iPageItem,
 //                    replacedPage: true,
@@ -312,20 +312,14 @@ class PageFaultLRU {
 //
 //                replaceWithValue(
 //                    this.objData[`col${this.currentCol}`],
-//                    iLeastUsedPage,
+//                    iValFirstItem,
 //                    replaceItem,
 //                );
 //
-//                this.pageFault++;
-//                this.frames.delete(iLeastUsedPage);
-//                this.order.delete(iLeastUsedPage);
-//
-//                this.frames.add(iPageItem);
 //                this.objData[`col${this.currentCol}`][0].textTrigger = 1;
 //            } else {
 //                this.objData[`col${this.currentCol}`][0].textTrigger = 2;
 //            }
-//            this.order.set(iPageItem, iIndexPageItem);
 //
 //            //this.currentCol++;
 //        }
@@ -342,4 +336,3 @@ class PageFaultLRU {
 //        return iResult;
 //    }
 //}
-//
