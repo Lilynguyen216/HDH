@@ -21,6 +21,7 @@
                 const inputFrame = this.getChildByName('frameNumber');
                 const comboboxAlgorithms = this.getChildByName('algorithms');
                 //how to get the value of select tag
+                const regexMatchFramesInput = /^(\d+, )+\d+$/;
                 const selectedAlgorithm = comboboxAlgorithms.value;
                 if (inputProcess.value !== '' && inputFrame.value !== '') {
                     // binding frame number input
@@ -28,11 +29,14 @@
                         document.getElementById("error-message").textContent = "Please enter the smaller number or equal to 8 !!!";
 
                     }
-
+                    else if(!regexMatchFramesInput.test(inputProcess.value)){
+                        alert("Please enter the correct format of process !!!")
+                    }
                     else {
                         //storage input values
                         const frameNumber = inputFrame.value;
 
+                        //(\d+, )+\d+
                         const parts = inputProcess.value.split(/[,\s]+/);
                         const processArray = [];
                         parts.forEach(part => {

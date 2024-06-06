@@ -318,10 +318,81 @@ class fifoScene extends Phaser.Scene {
                 : txtPlayStop.setText('Stop');
         });
         //**********************************************slider**********************************************
-        this.slider();
+        //BUG when back in intro and get into scene again
+        //this.slider(); 
+        const objSliderConfig = {
+            x: 1000,
+            y: 200,
+            width: 500,
+            height: 10,
+            orientation: 'x',
+            track: this.rexUI.add.roundRectangle(
+                0,
+                0,
+                0,
+                0,
+                2,
+                COLOR_DARK_FIFO,
+            ),
+            thumb: this.rexUI.add.roundRectangle(
+                0,
+                0,
+                0,
+                0,
+                10,
+                COLOR_LIGHT_FIFO,
+            ),
+            input: 'click',
+        };
+
+        this.slider = this.rexUI.add.slider(objSliderConfig).layout();
+        this.slider.on('pointerdown', () => {
+            if (this.bIsPlaying === true) this.bIsPlaying = false;
+            //when slider is clicked, bIsPlaying switch to false to prevent code block in update function
+
+            //Round down, when clicking, the value of slider between 0 and lru.getQuantityItemArr() - 1
+            const valueCurrentSolution = Math.floor(
+                this.slider.getValue(0, this.fifo.getQuantityItemArr() - 1),
+            );
+            //set visible true for all object from 0 to valueCurrentSolution
+            for (let i = 0; i <= valueCurrentSolution; i++) {
+                //console.log('visible', i);
+                this.arrSolution[i]['textObj'].setVisible(true);
+            }
+            //on the other hand, the others will be invisible
+            for (
+                let i = valueCurrentSolution + 1;
+                i < this.fifo.getQuantityItemArr();
+                i++
+            ) {
+                //console.log('not visible', i);
+                this.arrSolution[i]['textObj'].setVisible(false);
+            }
+            //console.log(valueCurrentSolution);
+            this.iCurrentSolution = valueCurrentSolution;
+            console.log(this.iCurrentSolution);
+            this.triggerText();
+        });
 
         //**********************************************text trigger**********************************************
         this.showTextTrigger();
+
+
+
+        //**********************************************back button**********************************************
+        const WIDTH_BACK_BUTTON = 100;
+        const btnBack = this.add
+            .rectangle(
+                1200,
+                100,
+                WIDTH_BACK_BUTTON,
+                WIDTH_BACK_BUTTON,
+                '#f00000',
+            )
+            .setInteractive({ useHandCursor: true });
+        btnBack.on('pointerdown', () => {
+            this.scene.start('introScene');
+        });
     }
 
     update(time, delta) {

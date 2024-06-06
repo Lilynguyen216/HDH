@@ -162,7 +162,7 @@ class lruScene extends Phaser.Scene {
         this.pages = [];
     }
     create() {
-        console.log('lru')
+        console.log('lru');
         //**********************************************Var involve data of intro scene**********************************************
         const processArray = this.scene
             .get('introScene')
@@ -225,7 +225,7 @@ class lruScene extends Phaser.Scene {
             this.add.text(
                 posRowArr.row0[i].posX,
                 posRowArr.row0[i].posY,
-                process[`process${i}`]
+                process[`process${i}`],
             );
         }
         //**********************************************Make text value invisible**********************************************
@@ -299,10 +299,66 @@ class lruScene extends Phaser.Scene {
                 : txtPlayStop.setText('Stop');
         });
         //**********************************************slider**********************************************
-        this.slider();
 
+        //BUG when back in intro and get into scene again
+        //this.slider();
+
+        const objSliderConfig = {
+            x: 1000,
+            y: 200,
+            width: 500,
+            height: 10,
+            orientation: 'x',
+            track: this.rexUI.add.roundRectangle(0, 0, 0, 0, 2, COLOR_DARK),
+            thumb: this.rexUI.add.roundRectangle(0, 0, 0, 0, 10, COLOR_LIGHT),
+            input: 'click',
+        };
+
+        this.slider = this.rexUI.add.slider(objSliderConfig).layout();
+        this.slider.on('pointerdown', () => {
+            if (this.bIsPlaying === true) this.bIsPlaying = false;
+            //when slider is clicked, bIsPlaying switch to false to prevent code block in update function
+
+            //Round down, when clicking, the value of slider between 0 and lru.getQuantityItemArr() - 1
+            const valueCurrentSolution = Math.floor(
+                this.slider.getValue(0, this.lru.getQuantityItemArr() - 1),
+            );
+            //set visible true for all object from 0 to valueCurrentSolution
+            for (let i = 0; i <= valueCurrentSolution; i++) {
+                //console.log('visible', i);
+                this.arrSolution[i]['textObj'].setVisible(true);
+            }
+            //on the other hand, the others will be invisible
+            for (
+                let i = valueCurrentSolution + 1;
+                i < this.lru.getQuantityItemArr();
+                i++
+            ) {
+                //console.log('not visible', i);
+                this.arrSolution[i]['textObj'].setVisible(false);
+            }
+            //console.log(valueCurrentSolution);
+            this.iCurrentSolution = valueCurrentSolution;
+            console.log(this.iCurrentSolution);
+            this.triggerText();
+        });
         //**********************************************text trigger**********************************************
         this.showTextTrigger();
+
+        //**********************************************back button to scene intro**********************************************
+        const WIDTH_BACK_BUTTON = 100;
+        const btnBack = this.add
+            .rectangle(
+                1200,
+                100,
+                WIDTH_BACK_BUTTON,
+                WIDTH_BACK_BUTTON,
+                '#f00000',
+            )
+            .setInteractive({ useHandCursor: true });
+        btnBack.on('pointerdown', () => {
+            this.scene.start('introScene');
+        });
     }
 
     update(time, delta) {

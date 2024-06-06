@@ -25,7 +25,7 @@ class PageFaultLRU {
         /****************************************************
          * @description get the table of lru {'colI': [{'textVal': number, 'textTrigger': number, 'replacedPage': boolean}]}
          * @property {int} colI[j].textVal show value page
-         * @property {int} colI[j].textTrigger trigger text on the right-top
+         * @property {int} colI[0].textTrigger trigger text on the right-top
          * @property {boolean} colI[j].replacedPage show current page will be replaced on next step
          * @returns {Object.<string, Array<Object>>} table of lru
          ****************************************************/
