@@ -56,7 +56,7 @@
 
     .form-input input:focus + label,
     .form-input input:not(:placeholder-shown) + label {
-        top: 0;
+        top: -20%;
         font-size: 0.8rem;
         color: indigo;
         padding: 7px;
@@ -74,7 +74,6 @@
         color: white;
         padding: 16px 32px;
         text-decoration: none;
-        margin: 4px 2px;
         cursor: pointer;
     }
     select {
@@ -120,7 +119,6 @@
         color: #f39c12;
     }
 
-
     a {
         font-weight: bold;
         color: var(--gray);
@@ -137,7 +135,6 @@
         transform: translate(-50%, -50%);
     }
 
-
     .down_note {
         display: flex;
         justify-content: center;
@@ -150,11 +147,12 @@
         name="processRange"
         placeholder="Enter a list of numbers"
     />
-    <label for="video-url" style="font-size: 13px; color: aliceblue"
-        >Hello</label
+    <label for="video-url" style="font-size: 20px; color: aliceblue"
+        >Page reference Eg: 1, 2, 3</label
     >
 </div>
-
+<br />
+<br />
 <div class="form-input">
     <input
         type="number"
@@ -164,23 +162,23 @@
         max="8"
         placeholder="Enter frame number"
     />
-    <label for="subtitle" style="font-size: 13px; color: aliceblue"
+    <label for="subtitle" style="font-size: 20px; color: aliceblue"
         >*Maximum 8 frames</label
     >
 </div>
-
+<br />
 <input type="button" name="playButton" value="Run" style="font-size: 20px" />
 <br />
 
-<p id="error-message"></p>
-<br />
-<label for="over18" style="font-size: 32px"
+<p id="error-message" style="color: red; font-size: 22px"></p>
+<label for="over18" style="font-size: 32px; color: white"
     >Choose Page Replacement Algorithms</label
 >
+<br />
 <br />
 <select name="algorithms" style="font-size: 32px">
     <option value="lru">LRU</option>
     <option value="fifo">FIFO</option>
-    <option value="optimal">Optimal</option>
-    <option value="clock">Clock</option>
+    <option value="optimal">OPTIMAL</option>
+    <option value="clock">CLOCK</option>
 </select>

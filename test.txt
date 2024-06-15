@@ -1,0 +1,2 @@
+<!-- This comment
+ covers two lines. -->

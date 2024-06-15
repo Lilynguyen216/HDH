@@ -17,7 +17,7 @@ const TXT_ADD_PAGE_FIFO = `      Add 'page' to 'frames'`;
 const TXT_CONDITION_CPAGE_FIFO = `   Else:\n 
         Do nothing`;
 //**************************************index start at 0**************************************
-class fifoScene extends Phaser.Scene {
+class fifoScene extends pageReplacement {
     constructor() {
         super('fifoScene');
     }
@@ -28,7 +28,6 @@ class fifoScene extends Phaser.Scene {
             sceneKey: 'rexUI',
         });
     }
-
     slider() {
         const objSliderConfig = {
             x: 1000,
@@ -102,15 +101,15 @@ class fifoScene extends Phaser.Scene {
             TXT_ADD_PAGE_FIFO,
             TXT_CONDITION_CPAGE_FIFO,
         ];
-        let iPosY = 400;
-        const iPosX = 800;
+        let iPosY = POSY_TRIGGERED_TEXT;
+        const iPosX = POSX_TRIGGERED_TEXT;
         const iDiff = 25;
         for (let i = 0; i < arrTXT.length; i++) {
             let colorVal = i === 0 ? COLOR_TXT_LIGHT_FIFO : COLOR_TXT_DARK_FIFO;
             this.arrTXT.push(
-                this.add.text(iPosX, iPosY, arrTXT[i], { color: colorVal }),
+                this.add.text(iPosX, iPosY, arrTXT[i], { color: colorVal , fontSize: 18}),
             );
-            if (i === 3) iPosY += 50;
+            if (i === 3) iPosY += 70;
             else iPosY += iDiff;
         }
     }
@@ -178,7 +177,7 @@ class fifoScene extends Phaser.Scene {
         this.pages = [];
     }
     create() {
-        console.log('fifo')
+        console.log('fifo');
         //**********************************************Var involve data of intro scene**********************************************
         const processArray = this.scene
             .get('introScene')
@@ -193,9 +192,12 @@ class fifoScene extends Phaser.Scene {
         const fifo = new PageFaultFIFO(pages, this.quantityFrames);
         this.fifo = fifo;
         this.fifo.traverse();
+        //**********************************************background**********************************************
+        console.log(this.fifo.pageFault)
+        this.backgroundAlgorithm(fifo);
         //**********************************************Create Grid**********************************************
-        let posX = 100,
-            posY = 100;
+        let posX = POSX,
+            posY = POSY;
 
         const iQuantityCol = processArray.length;
         const iQuantityRow = frameNumber;
@@ -230,11 +232,11 @@ class fifoScene extends Phaser.Scene {
                     });
                 }
 
-                this.add.rectangle(posX, posY, WIDTH, WIDTH, '#f00000');
-                posX += 100;
+                this.add.rectangle(posX, posY, WIDTH, WIDTH, '0x7cf2ff', 0.8)
+                posX += GAPX_EACH_RECT;
             }
-            posX = 100;
-            posY += 100;
+            posX = POSX;
+            posY += ( iRow === 0 ? 90 : GAPY_EACH_RECT );
         }
         const process = {};
         for (let i = 0; i < iQuantityCol; i++) {
@@ -243,6 +245,7 @@ class fifoScene extends Phaser.Scene {
                 posRowArr.row0[i].posX,
                 posRowArr.row0[i].posY,
                 process[`process${i}`],
+                {fontSize: 18}
             );
         }
         //**********************************************Make text value invisible**********************************************
@@ -266,6 +269,8 @@ class fifoScene extends Phaser.Scene {
                                             .replacedPage === true
                                             ? COLOR_TXT_REPLACED_PAGE_FIFO
                                             : COLOR_TXT_LIGHT_FIFO,
+                                    fontSize: 18
+
                                 },
                             )
                             .setVisible(false),
@@ -276,7 +281,7 @@ class fifoScene extends Phaser.Scene {
 
         //**********************************************Button forward, backward, stop step**********************************************
         const btnForward = this.add
-            .rectangle(1000, 100, WIDTH, WIDTH, '#f00000')
+            .image(POSX_FORWARD, POSY_FORWARD, 'forwardBtn')
             .setInteractive({ useHandCursor: true });
         btnForward.on('pointerdown', () => {
             this.showOneItemSolution();
@@ -292,7 +297,7 @@ class fifoScene extends Phaser.Scene {
         });
 
         const btnBackward = this.add
-            .rectangle(900, 100, WIDTH, WIDTH, '#f00000')
+            .image(POSX_BACKWARD, POSY_BACKWARD, 'backwardBtn')
             .setInteractive({ useHandCursor: true });
         btnBackward.on('pointerdown', () => {
             this.hideOneItemSolution();
@@ -308,18 +313,20 @@ class fifoScene extends Phaser.Scene {
         });
 
         const btnPlayStop = this.add
-            .rectangle(950, 100, WIDTH - 10, WIDTH - 10, '#f00000')
+            .image(POSX_PLAY_STOP, POSY_PLAY_STOP, 'playBtn')
             .setInteractive({ useHandCursor: true });
-        let txtPlayStop = this.add.text(925, 100, 'Stop');
         btnPlayStop.on('pointerdown', () => {
             this.bIsPlaying = !this.bIsPlaying;
             this.bIsPlaying === true
-                ? txtPlayStop.setText('Play')
-                : txtPlayStop.setText('Stop');
+                ? btnPlayStop.setTexture('stopBtn')
+                : btnPlayStop.setTexture('playBtn');
         });
+        this.hoverBigObject(btnBackward);
+        this.hoverBigObject(btnForward);
+        this.hoverBigObject(btnPlayStop);
         //**********************************************slider**********************************************
         //BUG when back in intro and get into scene again
-        //this.slider(); 
+        //this.slider();
         const objSliderConfig = {
             x: 1000,
             y: 200,
@@ -377,19 +384,13 @@ class fifoScene extends Phaser.Scene {
         //**********************************************text trigger**********************************************
         this.showTextTrigger();
 
-
-
         //**********************************************back button**********************************************
         const WIDTH_BACK_BUTTON = 100;
         const btnBack = this.add
-            .rectangle(
-                1200,
-                100,
-                WIDTH_BACK_BUTTON,
-                WIDTH_BACK_BUTTON,
-                '#f00000',
-            )
+            .image(POSX_HOME, POSY_HOME, 'homeBtn')
             .setInteractive({ useHandCursor: true });
+        
+        this.hoverBigObject(btnBack);
         btnBack.on('pointerdown', () => {
             this.scene.start('introScene');
         });

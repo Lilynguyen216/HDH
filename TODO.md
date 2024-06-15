@@ -22,7 +22,7 @@ console.log(key, obj[key])
 3. copy not reference
 
 4. prevent from adding swp extension into github
-
+5. must calcaulate before hand
 # Bug
 1. Data structure of setHoldLessPage have textTrigger key in all item in array of columni
 2. Remove all files with swp extension

@@ -17,7 +17,7 @@ const TXT_ADD_PAGE = `      Add 'page' to 'frames'`;
 const TXT_CONDITION_CPAGE = `   Else:\n 
         Do nothing`;
 //**************************************index start at 0**************************************
-class lruScene extends Phaser.Scene {
+class lruScene extends pageReplacement {
     constructor() {
         super('lruScene');
     }
@@ -88,13 +88,13 @@ class lruScene extends Phaser.Scene {
             TXT_ADD_PAGE,
             TXT_CONDITION_CPAGE,
         ];
-        let iPosY = 400;
-        const iPosX = 800;
+        let iPosY = POSY_TRIGGERED_TEXT;
+        const iPosX = POSX_TRIGGERED_TEXT;
         const iDiff = 25;
         for (let i = 0; i < arrTXT.length; i++) {
             let colorVal = i === 0 ? COLOR_TXT_LIGHT : COLOR_TXT_DARK;
             this.arrTXT.push(
-                this.add.text(iPosX, iPosY, arrTXT[i], { color: colorVal }),
+                this.add.text(iPosX, iPosY, arrTXT[i], { color: colorVal, fontSize: 18}),
             );
             if (i === 3) iPosY += 50;
             else iPosY += iDiff;
@@ -162,7 +162,6 @@ class lruScene extends Phaser.Scene {
         this.pages = [];
     }
     create() {
-        console.log('lru');
         //**********************************************Var involve data of intro scene**********************************************
         const processArray = this.scene
             .get('introScene')
@@ -170,16 +169,18 @@ class lruScene extends Phaser.Scene {
         const frameNumber = this.scene
             .get('introScene')
             .data.get('frameNumber');
-        //**********************************************Var involve algorithm**********************************************
+        ////**********************************************Var involve algorithm**********************************************
         this.quantityFrames = parseInt(frameNumber);
         let pages = processArray;
         this.pages = processArray;
         const lru = new PageFaultLRU(this.pages, this.quantityFrames);
         this.lru = lru;
         this.lru.traverse();
+        //**********************************************algorithm**********************************************
+        this.backgroundAlgorithm(lru);
         //**********************************************Create Grid**********************************************
-        let posX = 100,
-            posY = 100;
+        let posX = POSX,
+            posY = POSY;
 
         const iQuantityCol = processArray.length;
         const iQuantityRow = frameNumber;
@@ -213,19 +214,22 @@ class lruScene extends Phaser.Scene {
                     });
                 }
 
-                this.add.rectangle(posX, posY, WIDTH, WIDTH, '#f00000');
-                posX += 100;
+                this.add.rectangle(posX, posY, WIDTH, WIDTH, '0x7cf2ff', 0.8);
+                posX += GAPX_EACH_RECT;
             }
-            posX = 100;
-            posY += 100;
+            posX = POSX;
+            posY += ( iRow === 0 ? 90 : GAPY_EACH_RECT );
         }
         const process = {};
         for (let i = 0; i < iQuantityCol; i++) {
             process[`process${i}`] = processArray[i];
             this.add.text(
-                posRowArr.row0[i].posX,
-                posRowArr.row0[i].posY,
+                posRowArr.row0[i].posX - 5,
+                posRowArr.row0[i].posY - 5,
                 process[`process${i}`],
+                {
+                    fontSize: 18
+                }
             );
         }
         //**********************************************Make text value invisible**********************************************
@@ -241,8 +245,8 @@ class lruScene extends Phaser.Scene {
                     this.arrSolution.push({
                         textObj: this.add
                             .text(
-                                posColArr[`col${iCol}`][iItemIndex].posX,
-                                posColArr[`col${iCol}`][iItemIndex].posY,
+                                posColArr[`col${iCol}`][iItemIndex].posX - 5,
+                                posColArr[`col${iCol}`][iItemIndex].posY - 5,
                                 lru.objData[`col${iCol}`][iItemIndex].textVal,
                                 {
                                     color:
@@ -250,7 +254,9 @@ class lruScene extends Phaser.Scene {
                                             .replacedPage === true
                                             ? COLOR_TXT_REPLACED_PAGE
                                             : COLOR_TXT_LIGHT,
+                                    fontSize: 18
                                 },
+
                             )
                             .setVisible(false),
                         posCol: `col${iCol}`,
@@ -260,7 +266,7 @@ class lruScene extends Phaser.Scene {
 
         //**********************************************Button forward, backward, stop step**********************************************
         const btnForward = this.add
-            .rectangle(1000, 100, WIDTH, WIDTH, '#f00000')
+            .image(POSX_FORWARD, POSY_FORWARD, 'forwardBtn')
             .setInteractive({ useHandCursor: true });
         btnForward.on('pointerdown', () => {
             this.showOneItemSolution();
@@ -275,7 +281,7 @@ class lruScene extends Phaser.Scene {
         });
 
         const btnBackward = this.add
-            .rectangle(900, 100, WIDTH, WIDTH, '#f00000')
+            .image(POSX_BACKWARD, POSY_BACKWARD, 'backwardBtn')
             .setInteractive({ useHandCursor: true });
         btnBackward.on('pointerdown', () => {
             this.hideOneItemSolution();
@@ -289,15 +295,17 @@ class lruScene extends Phaser.Scene {
         });
 
         const btnPlayStop = this.add
-            .rectangle(950, 100, WIDTH - 10, WIDTH - 10, '#f00000')
+            .image(POSX_PLAY_STOP, POSY_PLAY_STOP, 'playBtn')
             .setInteractive({ useHandCursor: true });
-        let txtPlayStop = this.add.text(925, 100, 'Stop');
         btnPlayStop.on('pointerdown', () => {
             this.bIsPlaying = !this.bIsPlaying;
             this.bIsPlaying === true
-                ? txtPlayStop.setText('Play')
-                : txtPlayStop.setText('Stop');
+                ? btnPlayStop.setTexture('stopBtn')
+                : btnPlayStop.setTexture('playBtn');
         });
+        this.hoverBigObject(btnBackward);
+        this.hoverBigObject(btnForward);
+        this.hoverBigObject(btnPlayStop);
         //**********************************************slider**********************************************
 
         //BUG when back in intro and get into scene again
@@ -346,16 +354,11 @@ class lruScene extends Phaser.Scene {
         this.showTextTrigger();
 
         //**********************************************back button to scene intro**********************************************
-        const WIDTH_BACK_BUTTON = 100;
         const btnBack = this.add
-            .rectangle(
-                1200,
-                100,
-                WIDTH_BACK_BUTTON,
-                WIDTH_BACK_BUTTON,
-                '#f00000',
-            )
+            .image(POSX_HOME, POSY_HOME, 'homeBtn')
             .setInteractive({ useHandCursor: true });
+
+        this.hoverBigObject(btnBack);
         btnBack.on('pointerdown', () => {
             this.scene.start('introScene');
         });
