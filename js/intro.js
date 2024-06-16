@@ -20,19 +20,19 @@ class introScene extends Phaser.Scene {
     }
     parent;
     preload() {
-        this.load.html('InputForm_Scene1', '/assets/InputForm_Scene1.html');
-        this.load.image('light_galaxy', '/assets/light_galaxy.jpg');
-        this.load.image('light_galaxy1', '/assets/light_galaxy1.png');
-        this.load.image('night_galaxy', '/assets/night_galaxy.jpg');
-        this.load.image('blue_area1', '/assets/blue_area1.png');
-        this.load.image('forwardBtn', '/assets/forwardBtn.png');
-        this.load.image('backwardBtn', '/assets/backwardBtn.png');
-        this.load.image('homeBtn', '/assets/homeBtn.png');
-        this.load.image('playBtn', '/assets/playBtn.png');
-        this.load.image('stopBtn', '/assets/stopBtn.png');
-        this.load.image('replacedPageTxt', '/assets/replacedPageTxt.png');
-        this.load.image('normalPageTxt', '/assets/normalPageTxt.png');
-        this.load.image('totalPageFaultsTxt', '/assets/totalPageFaultsTxt.png');
+        this.load.html('InputForm_Scene1', './assets/InputForm_Scene1.html');
+        this.load.image('light_galaxy', './assets/light_galaxy.jpg');
+        this.load.image('light_galaxy1', './assets/light_galaxy1.png');
+        this.load.image('night_galaxy', './assets/night_galaxy.jpg');
+        this.load.image('blue_area1', './assets/blue_area1.png');
+        this.load.image('forwardBtn', './assets/forwardBtn.png');
+        this.load.image('backwardBtn', './assets/backwardBtn.png');
+        this.load.image('homeBtn', './assets/homeBtn.png');
+        this.load.image('playBtn', './assets/playBtn.png');
+        this.load.image('stopBtn', './assets/stopBtn.png');
+        this.load.image('replacedPageTxt', './assets/replacedPageTxt.png');
+        this.load.image('normalPageTxt', './assets/normalPageTxt.png');
+        this.load.image('totalPageFaultsTxt', './assets/totalPageFaultsTxt.png');
     }
 
     create() {
