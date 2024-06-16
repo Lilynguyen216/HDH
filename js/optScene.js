@@ -10,7 +10,8 @@ const TXT_ALWAYS_OPT = "For each 'page' in 'pages':";
 const TXT_CONDITION_NOT_CPAGE_OPT = `   If 'frames' does not contain 'page':`;
 const TXT_INCRE_PAGEFAULT_OPT = `       Increment 'pageFaults''`;
 const TXT_FULL_OPT = `      If 'frames' is full:\n
-            Remove oldest page based on its order when added to frames
+        Remove the page that will not be used\n
+        for the longest period in the future from 'frames'
 `;
 const TXT_ADD_PAGE_OPT = `      Add 'page' to 'frames'`;
 const TXT_CONDITION_CPAGE_OPT = `   Else:\n 
@@ -102,7 +103,7 @@ class optScene extends pageReplacement {
             this.arrTXT.push(
                 this.add.text(iPosX, iPosY, arrTXT[i], { color: colorVal }),
             );
-            if (i === 3) iPosY += 50;
+            if (i === 3) iPosY += 90;
             else iPosY += iDiff;
         }
     }
@@ -211,12 +212,12 @@ class optScene extends pageReplacement {
                     });
                 }
 
-                this.add.rectangle(posX, posY, WIDTH, WIDTH, '0x7cf2ff', 0.8)
+                this.add.rectangle(posX, posY, WIDTH, WIDTH, '0x7cf2ff', 0.8);
                 //posX += 60;
                 posX += GAPX_EACH_RECT;
             }
             posX = POSX;
-            posY += ( iRow === 0 ? 90 : GAPY_EACH_RECT );
+            posY += iRow === 0 ? 90 : GAPY_EACH_RECT;
         }
         const process = {};
         for (let i = 0; i < iQuantityCol; i++) {
@@ -225,7 +226,7 @@ class optScene extends pageReplacement {
                 posRowArr.row0[i].posX - 5,
                 posRowArr.row0[i].posY - 5,
                 process[`process${i}`],
-                {fontSize: 18}
+                { fontSize: 18 },
             );
         }
         //**********************************************Make text value invisible**********************************************
@@ -249,7 +250,7 @@ class optScene extends pageReplacement {
                                             .replacedPage === true
                                             ? COLOR_TXT_REPLACED_PAGE_OPT
                                             : COLOR_TXT_LIGHT_OPT,
-                                    fontSize: 18
+                                    fontSize: 18,
                                 },
                             )
                             .setVisible(false),

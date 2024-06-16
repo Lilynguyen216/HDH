@@ -10,24 +10,20 @@ const TXT_ALWAYS_CLOCK = "For each 'page' in 'pages':";
 const TXT_CONDITION_NOT_CPAGE_CLOCK = `   If 'frames' does not contain 'page':`;
 const TXT_INCRE_PAGEFAULT_CLOCK = `       Increment 'pageFaults''`;
 const TXT_FULL_CLOCK = `      If 'frames' is full:\n
-            Remove oldest page based on its order \n
-            when added to frames
+            Get the page at the 'clockHand' position in 'frames' \n
+            if that page is not referenced:\n
+                Move the clockHand to the next page (circularly)\n
+
 `;
-const TXT_ADD_PAGE_CLOCK = `      Add 'page' to 'frames'`;
+const TXT_ADD_PAGE_CLOCK = `              Add 'page' to 'frames'`;
 const TXT_CONDITION_CPAGE_CLOCK = `   Else:\n 
         Do nothing`;
 //**************************************index start at 0**************************************
-class clockScene extends Phaser.Scene {
+class clockScene extends pageReplacement{
     constructor() {
         super('clockScene');
     }
     preload() {
-        this.load.image('backScene1BtnBackground', './assets/back_to_scene1_button_background.jpg');
-        this.load.image('forwardBtnBackground', './assets/forward_button_background.jpg');
-        this.load.image('backwardBtnBackground', './assets/backward_button_background.jpg');
-        this.load.image('stopBtnBackground', './assets/stop_button.jpg');
-        this.load.image('playBtnBackground', './assets/play_button.jpg');
-        this.load.image('background', './assets/996.jpg');
         this.load.scenePlugin({
             key: 'rexuiplugin',
             url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
@@ -92,12 +88,10 @@ class clockScene extends Phaser.Scene {
     }
     showOneItemSolution() {
         this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(true);
-        this.storeArr[this.iCurrentSolution]['textObj'].setVisible(true);
         this.triggerText();
     }
     hideOneItemSolution() {
         this.arrSolution[this.iCurrentSolution]['textObj'].setVisible(false);
-        this.storeArr[this.iCurrentSolution]['textObj'].setVisible(false);
         this.triggerText();
     }
 
@@ -110,15 +104,15 @@ class clockScene extends Phaser.Scene {
             TXT_ADD_PAGE_CLOCK,
             TXT_CONDITION_CPAGE_CLOCK,
         ];
-        let iPosY = 300;
-        const iPosX = 1000;
+        let iPosY = POSY_TRIGGERED_TEXT;
+        const iPosX = POSX_TRIGGERED_TEXT;
         const iDiff = 25;
         for (let i = 0; i < arrTXT.length; i++) {
             let colorVal = i === 0 ? COLOR_TXT_LIGHT_CLOCK : COLOR_TXT_DARK_CLOCK;
             this.arrTXT.push(
                 this.add.text(iPosX, iPosY, arrTXT[i], { color: colorVal }),
             );
-            if (i === 3) iPosY += 90;
+            if (i === 3) iPosY += 100;
             else iPosY += iDiff;
         }
     }
@@ -206,6 +200,8 @@ class clockScene extends Phaser.Scene {
         this.opt = opt;
         this.opt.run();
         this.opt.getSCData();
+        //**********************************************algorithm**********************************************
+        this.backgroundAlgorithm(opt);
         //**********************************************Create Grid**********************************************
         let posX = POSX,
             posY = POSY;
@@ -216,7 +212,7 @@ class clockScene extends Phaser.Scene {
         const posRowArr = {};
         //only save
         const posColArr = {};
-        for (let iRow = 0; iRow <= 2*iQuantityRow; iRow++) {
+        for (let iRow = 0; iRow <= iQuantityRow; iRow++) {
             posRowArr[`row${iRow}`] = [];
             for (let iCol = 0; iCol < iQuantityCol; iCol++) {
 
@@ -233,11 +229,11 @@ class clockScene extends Phaser.Scene {
                     });
                 }
 
-                this.add.rectangle(posX, posY, WIDTH, WIDTH, '#f00000');
+                this.add.rectangle(posX, posY, WIDTH, WIDTH, '0x7cf2ff', 0.8);
                 posX += 60;
             }
-            posX = 50;
-            posY += iRow !== 3 ? 70 : 100;
+            posX = POSX;
+            posY += ( iRow === 0 ? 90 : GAPY_EACH_RECT );
         }
         const process = {};
         for (let i = 0; i < iQuantityCol; i++) {
@@ -246,6 +242,9 @@ class clockScene extends Phaser.Scene {
                 posRowArr.row0[i].posX,
                 posRowArr.row0[i].posY,
                 process[`process${i}`],
+                {
+                    fontSize: 18
+                }
             );
         }
         //**********************************************Make text value invisible**********************************************
@@ -269,6 +268,7 @@ class clockScene extends Phaser.Scene {
                                             .replacedPage === true
                                             ? COLOR_TXT_REPLACED_PAGE_CLOCK
                                             : COLOR_TXT_LIGHT_CLOCK,
+                                    fontSize: 18
                                 },
                             )
                             .setVisible(false),
@@ -276,21 +276,6 @@ class clockScene extends Phaser.Scene {
                         posIndex: iItemIndex,
                     });
                     /**************************/
-                    this.storeArr.push({
-                        textObj: this.add
-                            .text(
-                                posColArr[`col${iCol}`][iItemIndex + this.quantityFrames].posX,
-                                posColArr[`col${iCol}`][iItemIndex + this.quantityFrames].posY,
-                                opt.scData[`col${iCol}`][iItemIndex],
-                                {
-                                    color:
-                                        COLOR_TXT_LIGHT_CLOCK,
-                                },
-                            )
-                            .setVisible(false),
-                        posCol: `col${iCol}`,
-                        posIndex: iItemIndex,
-                    });
                 }
             }
 
@@ -328,8 +313,11 @@ class clockScene extends Phaser.Scene {
             .rectangle(1000, 100, WIDTH, WIDTH, '#f00000')
             .setInteractive({ useHandCursor: true });
         */
-        const btnForward = createButton(1220, 100, 'forwardBtnBackground');
+        //const btnForward = createButton(1220, 100, 'forwardBtnBackground');
 
+        const btnForward = this.add
+            .image(POSX_FORWARD, POSY_FORWARD, 'forwardBtn')
+            .setInteractive({ useHandCursor: true });
         btnForward.on('pointerdown', () => {
             this.showOneItemSolution();
             if (this.bIsPlaying === true) this.bIsPlaying = false;
@@ -348,7 +336,10 @@ class clockScene extends Phaser.Scene {
             .rectangle(900, 100, WIDTH, WIDTH, '#f00000')
             .setInteractive({ useHandCursor: true });
         */
-        const btnBackward = createButton(1085, 100, 'backwardBtnBackground');
+        //const btnBackward = createButton(1085, 100, 'backwardBtnBackground');
+        const btnBackward = this.add
+            .image(POSX_BACKWARD, POSY_BACKWARD, 'backwardBtn')
+            .setInteractive({ useHandCursor: true });
         btnBackward.on('pointerdown', () => {
             this.hideOneItemSolution();
             console.log(this.bIsPlaying === true);
@@ -366,17 +357,21 @@ class clockScene extends Phaser.Scene {
             .rectangle(950, 100, WIDTH - 10, WIDTH - 10, '#f00000')
             .setInteractive({ useHandCursor: true });
         */
-        const playBtn = createButton(1153, 100, 'stopBtnBackground');
+        //const playBtn = createButton(1153, 100, 'stopBtnBackground');
 
-        playBtn.on('pointerdown', () => {
+        const btnPlayStop = this.add
+            .image(POSX_PLAY_STOP, POSY_PLAY_STOP, 'playBtn')
+            .setInteractive({ useHandCursor: true });
+        btnPlayStop.on('pointerdown', () => {
             this.bIsPlaying = !this.bIsPlaying;
-            if (this.bIsPlaying === false) {
-                playBtn.setTexture('stopBtnBackground');
-            }
-            else {
-                playBtn.setTexture('playBtnBackground');
-            }
+            this.bIsPlaying === true
+                ? btnPlayStop.setTexture('stopBtn')
+                : btnPlayStop.setTexture('playBtn');
         });
+        this.hoverBigObject(btnBackward);
+        this.hoverBigObject(btnForward);
+        this.hoverBigObject(btnPlayStop);
+        //**********************************************slider**********************************************
         /*
         let txtPlayStop = this.add.text(925, 100, 'Stop');
         btnPlayStop.on('pointerdown', () => {
@@ -388,26 +383,88 @@ class clockScene extends Phaser.Scene {
         */
 
         //******************************************button back to scene 1**********************************
-        const backScene1Btn = createButton(1400, 650, 'backScene1BtnBackground');
+        //const backScene1Btn = createButton(1400, 650, 'backScene1BtnBackground');
 
-        backScene1Btn.on('pointerdown', () => {
-            this.scene.start('scene1');
+        //backScene1Btn.on('pointerdown', () => {
+        //    this.scene.start('scene1');
+        //});
+        //
+        const btnBack = this.add
+            .image(POSX_HOME, POSY_HOME, 'homeBtn')
+            .setInteractive({ useHandCursor: true });
+
+        this.hoverBigObject(btnBack);
+        btnBack.on('pointerdown', () => {
+            this.scene.start('introScene');
         });
+    
         //**********************************************note************************************************
-        const noteReplacedPageIcon = this.add
-            .rectangle(100, 650, 20, 20, 0xFF0000)
-            .setInteractive({ useHandCursor: true });
+        //const noteReplacedPageIcon = this.add
+        //    .rectangle(100, 650, 20, 20, 0xFF0000)
+        //    .setInteractive({ useHandCursor: true });
 
-        this.add.text(120, 645, 'Replaced Page', { font: '16px Arial', fill: '#000000' });
+        //this.add.text(120, 645, 'Replaced Page', { font: '16px Arial', fill: '#000000' });
 
-        const noteNormalPageIcon = this.add
-            .rectangle(350, 650, 20, 20, 0xFFFFFF)
-            .setInteractive({ useHandCursor: true });
+        //const noteNormalPageIcon = this.add
+        //    .rectangle(350, 650, 20, 20, 0xFFFFFF)
+        //    .setInteractive({ useHandCursor: true });
 
-        this.add.text(370, 645, 'Normal Page', { font: '16px Arial', fill: '#000000'});
+        //this.add.text(370, 645, 'Normal Page', { font: '16px Arial', fill: '#000000'});
         //**********************************************slider**********************************************
-        this.slider();
+        //this.slider();
+        const objSliderConfig = {
+            x: 1000,
+            y: 200,
+            width: 500,
+            height: 10,
+            orientation: 'x',
+            track: this.rexUI.add.roundRectangle(
+                0,
+                0,
+                0,
+                0,
+                2,
+                COLOR_DARK_CLOCK,
+            ),
+            thumb: this.rexUI.add.roundRectangle(
+                0,
+                0,
+                0,
+                0,
+                10,
+                COLOR_LIGHT_CLOCK,
+            ),
+            input: 'click',
+        };
 
+        this.slider = this.rexUI.add.slider(objSliderConfig).layout();
+        this.slider.on('pointerdown', () => {
+            if (this.bIsPlaying === true) this.bIsPlaying = false;
+            //when slider is clicked, bIsPlaying switch to false to prevent code block in update function
+
+            //Round down, when clicking, the value of slider between 0 and lru.getQuantityItemArr() - 1
+            const valueCurrentSolution = Math.floor(
+                this.slider.getValue(0, this.opt.getQuantityItemArr() - 1),
+            );
+            //set visible true for all object from 0 to valueCurrentSolution
+            for (let i = 0; i <= valueCurrentSolution; i++) {
+                //console.log('visible', i);
+                this.arrSolution[i]['textObj'].setVisible(true);
+            }
+            //on the other hand, the others will be invisible
+            for (
+                let i = valueCurrentSolution + 1;
+                i < this.opt.getQuantityItemArr();
+                i++
+            ) {
+                //console.log('not visible', i);
+                this.arrSolution[i]['textObj'].setVisible(false);
+            }
+            //console.log(valueCurrentSolution);
+            this.iCurrentSolution = valueCurrentSolution;
+            console.log(this.iCurrentSolution);
+            this.triggerText();
+        });
         //**********************************************text trigger**********************************************
         this.showTextTrigger();
     }
