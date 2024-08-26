@@ -1,0 +1,134 @@
+﻿<!--
+<input type="text" name="processRange" placeholder="Enter a list of numbers" style="font-size: 32px; background-color: black; color: white; width: 395px; height: 50px;">
+<br />
+<label for="input" style="font-size : 13px; color : aliceblue">*Maximum 15 numbers</label>
+<br /><br />
+
+<input type="number" name="frameNumber" min="1" max="8" placeholder="Enter frame number" style="font-size: 32px; background-color: black; color: white; width: 395px; height: 50px;">
+
+<input type="button" name="playButton" value="Run" style="font-size: 20px">
+<br />
+
+<p id="error-message"> </p>
+//
+<br />
+<label for="over18" style="font-size: 32px">Are you over 18?</label>
+<input type="checkbox" id="over18" name="over18" style="font-size: 32px">
+-->
+
+
+<style>
+		
+	body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+		display: flex;
+    }
+		
+    .content {
+	    position: relative;
+		text-align: center;
+		height: 100%;
+		width: auto;
+	}
+
+    .title {
+        <!--
+        color: darkviolet;
+        text-align: center;
+        justify-content: center;
+        font-family: 'Roboto', Arial, sans-serif;
+        font-family: myFont;
+        font-size: 50px;
+        font-weight: bold;
+        -->
+        max-width: 80%;
+        height: auto;
+        transform: translateY(-100%);
+    }
+
+    .content .button {
+        position: absolute;
+        width: 200px;
+        height: 50px;
+        margin-bottom: 20px;
+        background: url('./assets/run_button_background.jpg');
+        background-size: 100% 100%;
+        <!-- background: linear-gradient(45deg, #6a11cb, #2575fc); -->
+        color: black;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        border-radius: 20px;
+        transition: background-color 0.3s ease;
+    }
+		
+    .content .combobox {
+	    position: absolute;
+        width: 402.2px;
+        height: 50px;
+        margin-bottom: 20px;
+        background-color: black;
+        color: white;
+	    font-size: 20px;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+	}
+		
+	.content .cbb-container #combobox1 {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -250%);
+    }
+        
+    #run_button {
+        left: 50%;
+        top: 70%;
+        transform: translate(-50%, 200%);
+		font-size: 20px;
+	    font-family: Arial, sans-serif;
+    }
+		
+    .button:hover {
+        background-color: gray;
+	    color: white;
+    }
+    
+    .content .processArray {
+	    transform: translate(0%, 30%)
+	}
+</style>
+
+<div class="title" id="bg-title">
+	<img src="./assets/text-1718135808078.png" alt="Title Image">
+</div>
+
+<div class="content">
+	<div class="cbb-container">
+		<select class="combobox" id="combobox1">
+			<option value="option1">OPT</option>
+			<option value="option2">LRU</option>
+			<option value="option3">FIFO</option>
+			<option value="option4">CLOCK</option>
+		</select>
+	</div>
+	<input class="processArray" type="text" name="processRange" id="input1" placeholder="Enter a list of numbers" style="font-size: 32px; background-color: black; color: white; width: 395px; height: 50px;">
+	<br />
+	<label class="note" for="input1" style="font-size : 13px; color : aliceblue">*Maximum 15 numbers</label>
+	<br /><br />
+
+	<input class="frameNum" type="number" name="frameNumber" min="1" max="8" placeholder="Enter frame number" style="font-size: 32px; background-color: black; color: white; width: 395px; height: 50px;">
+	<button class="button" id="run_button" name="playButton" value="Run"></button>
+</div>
+
+
+
+
+
